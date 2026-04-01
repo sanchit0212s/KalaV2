@@ -2,11 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, X, ChevronDown } from "lucide-react";
-import { fetchProducts, type ShopifyProduct } from "@/lib/shopify";
+import { fetchCatalogProducts, type CatalogProduct } from "@/lib/commerceConnector";
 import { matchProductToDeity, allChakras, allElements, deities } from "@/data/deities";
 import { useCartStore } from "@/stores/cartStore";
 import { toast } from "sonner";
-import { formatShopifyAmount } from "@/lib/pricing";
+import { formatMoneyAmount } from "@/lib/pricing";
 
 const uniqueDeityNames = [...new Set(deities.map(d => d.name))];
 
@@ -75,7 +75,7 @@ function FilterDropdown({ label, options, selected, onSelect }: FilterDropdownPr
 }
 
 export default function Collection() {
-  const [products, setProducts] = useState<ShopifyProduct[]>([]);
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
@@ -87,7 +87,7 @@ export default function Collection() {
   const selectedDeity = searchParams.get("deity") || "";
 
   useEffect(() => {
-    fetchProducts(50).then(p => {
+    fetchCatalogProducts(50).then(p => {
       setProducts(p);
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -113,7 +113,7 @@ export default function Collection() {
     return true;
   });
 
-  const handleAddToCart = async (product: ShopifyProduct) => {
+  const handleAddToCart = async (product: CatalogProduct) => {
     const variant = product.node.variants.edges[0]?.node;
     if (!variant) return;
     await addItem(variant.id, 1);
@@ -235,7 +235,7 @@ export default function Collection() {
                   </Link>
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-gold font-display">
-                      {formatShopifyAmount(price.amount, price.currencyCode)}
+                      {formatMoneyAmount(price.amount, price.currencyCode)}
                     </p>
                     <button
                       onClick={() => handleAddToCart(product)}

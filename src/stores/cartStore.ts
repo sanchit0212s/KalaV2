@@ -1,31 +1,31 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import {
-  type ShopifyCart,
-  createShopifyCart,
-  addLineToShopifyCart,
-  updateShopifyCartLine,
-  removeLineFromShopifyCart,
-  fetchCart,
-  formatCheckoutUrl,
-} from '@/lib/shopify';
+  type CommerceCart,
+  createCart,
+  addCartLine,
+  updateCartLineQuantity,
+  removeCartLine,
+  fetchStoredCart,
+  resolveCheckoutUrl,
+} from '@/lib/commerceConnector';
 
 // Exported so CartDrawer and other consumers can derive addon state from cart
 // lines without re-hardcoding the IDs.
-export const CONSECRATION_VARIANT_ID = 'gid://shopify/ProductVariant/45915468366012';
-export const LAMP_VARIANT_ID = 'gid://shopify/ProductVariant/45915468398780';
+export const CONSECRATION_VARIANT_ID = 'v-consecration-1';
+export const LAMP_VARIANT_ID = 'v-diya-1';
 
 // ─── Store interface ──────────────────────────────────────────────────────────
 
 interface CartStore {
-  // The full Shopify cart object is the single source of truth.
+  // The full connector cart object is the single source of truth.
   // All pricing, quantities, and line IDs come from here — never computed locally.
-  cart: ShopifyCart | null;
+  cart: CommerceCart | null;
   isLoading: boolean;
   isSyncing: boolean;
 
   addItem: (variantId: string, quantity?: number) => Promise<void>;
-  // lineId is cart.lines.edges[n].node.id — always sourced from Shopify response.
+  // lineId is cart.lines.edges[n].node.id — always sourced from the connector response.
   updateQuantity: (lineId: string, quantity: number) => Promise<void>;
   removeItem: (lineId: string) => Promise<void>;
   clearCart: () => void;
@@ -37,7 +37,7 @@ interface CartStore {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function findLineByVariantId(cart: ShopifyCart, variantId: string) {
+function findLineByVariantId(cart: CommerceCart, variantId: string) {
   return cart.lines.edges.find(e => e.node.merchandise.id === variantId)?.node ?? null;
 }
 
@@ -55,14 +55,14 @@ export const useCartStore = create<CartStore>()(
         set({ isLoading: true });
         try {
           if (!cart) {
-            // No cart yet — create one. Shopify returns the full cart object.
-            const newCart = await createShopifyCart({ variantId, quantity });
+            // No cart yet — create one through the connector.
+            const newCart = await createCart({ variantId, quantity });
             if (newCart) set({ cart: newCart });
           } else {
             const existingLine = findLineByVariantId(cart, variantId);
             if (existingLine) {
-              // Variant already in cart — increment quantity via update mutation.
-              const result = await updateShopifyCartLine(
+              // Variant already in cart — increment quantity via connector update.
+              const result = await updateCartLineQuantity(
                 cart.id,
                 existingLine.id,
                 existingLine.quantity + quantity,
@@ -71,7 +71,7 @@ export const useCartStore = create<CartStore>()(
               else if (result.cartNotFound) clearCart();
             } else {
               // New line — add to existing cart.
-              const result = await addLineToShopifyCart(cart.id, { variantId, quantity });
+              const result = await addCartLine(cart.id, { variantId, quantity });
               if (result.cart) set({ cart: result.cart });
               else if (result.cartNotFound) clearCart();
             }
@@ -92,7 +92,7 @@ export const useCartStore = create<CartStore>()(
         if (!cart) return;
         set({ isLoading: true });
         try {
-          const result = await updateShopifyCartLine(cart.id, lineId, quantity);
+          const result = await updateCartLineQuantity(cart.id, lineId, quantity);
           if (result.cart) set({ cart: result.cart });
           else if (result.cartNotFound) clearCart();
         } finally {
@@ -105,7 +105,7 @@ export const useCartStore = create<CartStore>()(
         if (!cart) return;
         set({ isLoading: true });
         try {
-          const result = await removeLineFromShopifyCart(cart.id, lineId);
+          const result = await removeCartLine(cart.id, lineId);
           if (result.cart) {
             result.cart.totalQuantity === 0 ? clearCart() : set({ cart: result.cart });
           } else if (result.cartNotFound) {
@@ -121,7 +121,7 @@ export const useCartStore = create<CartStore>()(
       // Apply the channel param at read time so it is never persisted in stale form.
       getCheckoutUrl: () => {
         const url = get().cart?.checkoutUrl;
-        return url ? formatCheckoutUrl(url) : null;
+        return url ? resolveCheckoutUrl(url) : null;
       },
 
       syncCart: async () => {
@@ -129,7 +129,7 @@ export const useCartStore = create<CartStore>()(
         if (!cart?.id || isSyncing) return;
         set({ isSyncing: true });
         try {
-          const updated = await fetchCart(cart.id);
+          const updated = await fetchStoredCart(cart.id);
           if (!updated || updated.totalQuantity === 0) {
             clearCart();
           } else {
@@ -165,9 +165,8 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: 'divine-arts-cart',
-      // version 2: clears old localStorage shape (items[], cartId, consecrationAdded…)
-      // and starts fresh with the new { cart } shape.
-      version: 2,
+      // Keep the persisted cart key stable while the connector implementation evolves.
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ cart: state.cart }),
     },

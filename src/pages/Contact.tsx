@@ -1,14 +1,27 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { submitContactForm } from "@/lib/backend";
 
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Message sent", { description: "We'll get back to you soon." });
-    setForm({ name: "", email: "", message: "" });
+
+    try {
+      setSubmitting(true);
+      await submitContactForm(form);
+      toast.success("Message sent", { description: "We'll get back to you soon." });
+      setForm({ name: "", email: "", message: "" });
+    } catch (error) {
+      toast.error("Could not send message", {
+        description: error instanceof Error ? error.message : "Unknown submission error",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -65,9 +78,10 @@ export default function Contact() {
             </div>
             <button
               type="submit"
+              disabled={submitting}
               className="w-full py-4 bg-gold text-charcoal font-display text-lg tracking-widest hover:bg-gold-light transition-all duration-500"
             >
-              Send Message
+              {submitting ? "Sending..." : "Send Message"}
             </button>
           </motion.form>
 

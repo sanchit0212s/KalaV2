@@ -1,14 +1,20 @@
-{%- assign collection = section.settings.collection | default: collections['all'] -%}
+{%- assign fc = collections[section.settings.collection] -%}
 {%- assign heading = section.settings.heading | default: 'Sacred Forms' -%}
+{%- assign limit = section.settings.limit | default: 4 -%}
 
 <section class="section-b bg-grain py-16">
   <div class="max-w-[1400px] mx-auto px-6">
 
-    {% render 'ornamental-divider', label: heading, extra_class: 'mb-12' %}
+    {%- comment -%} OrnamentalDivider {%- endcomment -%}
+    <div class="flex items-center gap-4 mb-12" data-animate>
+      <div class="flex-1 ornament-line"></div>
+      <span class="section-label whitespace-nowrap">{{ heading }}</span>
+      <div class="flex-1 ornament-line"></div>
+    </div>
 
-    {%- if collection != blank and collection.products_count > 0 -%}
+    {%- if fc != blank and fc.products_count > 0 -%}
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-        {%- for product in collection.products limit: 4 -%}
+        {%- for product in fc.products limit: limit -%}
           {% render 'product-card', product: product, index: forloop.index0 %}
         {%- endfor -%}
       </div>
@@ -17,7 +23,7 @@
     {%- endif -%}
 
     <div class="text-center mt-10">
-      <a href="{{ collection.url | default: '/collections/all' }}" class="btn-outline inline-flex items-center gap-2">
+      <a href="{{ fc.url | default: '/collections/all' }}" class="btn-outline inline-flex items-center gap-2">
         View Full Collection
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
@@ -40,6 +46,15 @@
       "id": "heading",
       "label": "Heading",
       "default": "Sacred Forms"
+    },
+    {
+      "type": "range",
+      "id": "limit",
+      "label": "Products to show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4
     }
   ],
   "presets": [

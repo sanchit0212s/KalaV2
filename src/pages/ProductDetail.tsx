@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { fetchProductByHandle, fetchProducts, type ShopifyProduct } from "@/lib/shopify";
+import {
+  fetchCatalogProductByHandle,
+  fetchCatalogProducts,
+  type CatalogProduct,
+} from "@/lib/commerceConnector";
 import { matchProductToDeity } from "@/data/deities";
 import { useCartStore, CONSECRATION_VARIANT_ID } from "@/stores/cartStore";
 import { toast } from "sonner";
 import { Loader2, Truck, Shield, Sparkles, Play } from "lucide-react";
-import { formatShopifyAmount } from "@/lib/pricing";
+import { formatMoneyAmount } from "@/lib/pricing";
 import certificateBackdrop from "@/assets/certificate-backdrop.jpg";
 
 export default function ProductDetail() {
@@ -15,7 +19,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeTab, setActiveTab] = useState<"vastu" | "chakra" | "element" | "care">("vastu");
-  const [relatedProducts, setRelatedProducts] = useState<ShopifyProduct[]>([]);
+  const [relatedProducts, setRelatedProducts] = useState<CatalogProduct[]>([]);
   const [addonPrices, setAddonPrices] = useState<Record<string, { amount: string; currencyCode: string }>>({});
   const addItem = useCartStore(state => state.addItem);
   const isLoading = useCartStore(state => state.isLoading);
@@ -27,16 +31,16 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (!handle) return;
-    fetchProductByHandle(handle).then(p => {
+    fetchCatalogProductByHandle(handle).then(p => {
       setProduct(p);
       setLoading(false);
     }).catch(() => setLoading(false));
 
-    fetchProducts(50).then(products => {
+    fetchCatalogProducts(50).then(products => {
       setRelatedProducts(products.filter(p => !p.node.handle.includes(handle || "")));
     }).catch(() => {});
 
-    fetchProducts(10, "tag:addon").then(addons => {
+    fetchCatalogProducts(10, "tag:addon").then(addons => {
       const map: Record<string, { amount: string; currencyCode: string }> = {};
       addons.forEach(p => {
         p.node.variants.edges.forEach((v: any) => {
@@ -145,10 +149,10 @@ export default function ProductDetail() {
               <p className="font-display text-ivory/30 text-sm italic mb-6">{deity.mantra}</p>
             )}
 
-            {/* Price — directly from Shopify */}
+            {/* Price — served through the commerce connector */}
             <div className="mb-6">
               <p className="text-gold font-display text-3xl">
-                {formatShopifyAmount(price.amount, price.currencyCode)}
+                {formatMoneyAmount(price.amount, price.currencyCode)}
               </p>
               <p className="text-ivory/30 font-body text-xs mt-1">
                 Price includes shipping
@@ -230,7 +234,7 @@ export default function ProductDetail() {
               ) : !variant?.availableForSale ? (
                 "Sold Out"
               ) : (
-                <>Add to Cart — {formatShopifyAmount(price.amount, price.currencyCode)}</>
+                <>Add to Cart — {formatMoneyAmount(price.amount, price.currencyCode)}</>
               )}
             </button>
 
@@ -312,7 +316,7 @@ export default function ProductDetail() {
                       <>
                         Add Shuddhi Poojan
                         {addonPrices[CONSECRATION_VARIANT_ID] && (
-                          <> — {formatShopifyAmount(addonPrices[CONSECRATION_VARIANT_ID].amount, addonPrices[CONSECRATION_VARIANT_ID].currencyCode)}</>
+                          <> — {formatMoneyAmount(addonPrices[CONSECRATION_VARIANT_ID].amount, addonPrices[CONSECRATION_VARIANT_ID].currencyCode)}</>
                         )}
                       </>
                     )}
@@ -399,7 +403,7 @@ export default function ProductDetail() {
                       <h3 className="font-display text-lg text-ivory group-hover:text-gold transition-colors">{rp.node.title}</h3>
                       {rd && <p className="text-ivory/40 font-body text-xs mt-1">{rd.tagline}</p>}
                       <p className="text-gold font-display mt-1">
-                        {formatShopifyAmount(rpPrice.amount, rpPrice.currencyCode)}
+                        {formatMoneyAmount(rpPrice.amount, rpPrice.currencyCode)}
                       </p>
                     </Link>
                   </motion.div>

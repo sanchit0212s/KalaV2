@@ -13,89 +13,45 @@
     <!-- Bento grid -->
     <div class="grid grid-cols-12 gap-4 auto-rows-[200px] md:auto-rows-[240px]">
 
-      <!-- Tall left -->
-      <div class="col-span-6 md:col-span-4 row-span-2 rounded-lg overflow-hidden relative group" data-animate>
-        {%- if section.settings.image_1 != blank -%}
-          <img
-            src="{{ section.settings.image_1 | image_url: width: 800 }}"
-            alt="{{ section.settings.image_1.alt | default: section.settings.room_1_name | escape }}"
-            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            loading="lazy"
-            width="{{ section.settings.image_1.width }}"
-            height="{{ section.settings.image_1.height }}"
-          >
-        {%- else -%}
-          {{ 'collection-1' | placeholder_svg_tag: 'w-full h-full object-cover' }}
-        {%- endif -%}
-        <div class="absolute inset-0 bg-gradient-to-t from-obsidian/60 via-transparent to-transparent"></div>
-        <div class="absolute bottom-4 left-4 right-4">
-          <p class="font-display text-base text-white mb-0.5">{{ section.settings.room_1_name | default: 'The Entryway' }}</p>
-          <p class="font-body text-[10px] text-white/60 tracking-wider uppercase">{{ section.settings.room_1_desc | default: 'Ganesh · Remover of Obstacles' }}</p>
-        </div>
-      </div>
+      {%- for block in section.blocks -%}
+        {%- case forloop.index -%}
+          {%- when 1 -%}
+            {%- assign cell_class = 'col-span-6 md:col-span-4 row-span-2' -%}
+            {%- assign img_width = 800 -%}
+          {%- when 2 -%}
+            {%- assign cell_class = 'col-span-6 md:col-span-8 row-span-1' -%}
+            {%- assign img_width = 1200 -%}
+          {%- when 3 -%}
+            {%- assign cell_class = 'col-span-6 md:col-span-4 row-span-1' -%}
+            {%- assign img_width = 800 -%}
+          {%- when 4 -%}
+            {%- assign cell_class = 'col-span-6 md:col-span-4 row-span-1' -%}
+            {%- assign img_width = 800 -%}
+          {%- else -%}
+            {%- assign cell_class = 'col-span-6 md:col-span-4 row-span-1' -%}
+            {%- assign img_width = 800 -%}
+        {%- endcase -%}
 
-      <!-- Top right wide -->
-      <div class="col-span-6 md:col-span-8 row-span-1 rounded-lg overflow-hidden relative group" data-animate>
-        {%- if section.settings.image_2 != blank -%}
-          <img
-            src="{{ section.settings.image_2 | image_url: width: 1200 }}"
-            alt="{{ section.settings.image_2.alt | default: section.settings.room_2_name | escape }}"
-            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            loading="lazy"
-            width="{{ section.settings.image_2.width }}"
-            height="{{ section.settings.image_2.height }}"
-          >
-        {%- else -%}
-          {{ 'collection-2' | placeholder_svg_tag: 'w-full h-full object-cover' }}
-        {%- endif -%}
-        <div class="absolute inset-0 bg-gradient-to-t from-obsidian/50 via-transparent to-transparent"></div>
-        <div class="absolute bottom-4 left-4 right-4">
-          <p class="font-display text-base text-white mb-0.5">{{ section.settings.room_2_name | default: 'The Living Room' }}</p>
-          <p class="font-body text-[10px] text-white/60 tracking-wider uppercase">{{ section.settings.room_2_desc | default: 'Shiva Nataraja · Force of Transformation' }}</p>
+        <div class="{{ cell_class }} rounded-lg overflow-hidden relative group" data-animate {{ block.shopify_attributes }}>
+          {%- if block.settings.image != blank -%}
+            <img
+              src="{{ block.settings.image | image_url: width: img_width }}"
+              alt="{{ block.settings.image.alt | default: block.settings.title | escape }}"
+              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              loading="lazy"
+              width="{{ block.settings.image.width }}"
+              height="{{ block.settings.image.height }}"
+            >
+          {%- else -%}
+            {{ 'collection-1' | placeholder_svg_tag: 'w-full h-full object-cover' }}
+          {%- endif -%}
+          <div class="absolute inset-0 bg-gradient-to-t from-obsidian/60 via-transparent to-transparent"></div>
+          <div class="absolute bottom-4 left-4 right-4">
+            <p class="font-display text-base text-white mb-0.5">{{ block.settings.title }}</p>
+            <p class="font-body text-[10px] text-white/60 tracking-wider uppercase">{{ block.settings.subtitle }}</p>
+          </div>
         </div>
-      </div>
-
-      <!-- Bottom left square -->
-      <div class="col-span-6 md:col-span-4 row-span-1 rounded-lg overflow-hidden relative group" data-animate>
-        {%- if section.settings.image_3 != blank -%}
-          <img
-            src="{{ section.settings.image_3 | image_url: width: 800 }}"
-            alt="{{ section.settings.image_3.alt | default: section.settings.room_3_name | escape }}"
-            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            loading="lazy"
-            width="{{ section.settings.image_3.width }}"
-            height="{{ section.settings.image_3.height }}"
-          >
-        {%- else -%}
-          {{ 'collection-3' | placeholder_svg_tag: 'w-full h-full object-cover' }}
-        {%- endif -%}
-        <div class="absolute inset-0 bg-gradient-to-t from-obsidian/60 via-transparent to-transparent"></div>
-        <div class="absolute bottom-4 left-4 right-4">
-          <p class="font-display text-base text-white mb-0.5">{{ section.settings.room_3_name | default: 'The Quiet Corner' }}</p>
-          <p class="font-body text-[10px] text-white/60 tracking-wider uppercase">{{ section.settings.room_3_desc | default: 'Buddha · Embodiment of Stillness' }}</p>
-        </div>
-      </div>
-
-      <!-- Bottom right square -->
-      <div class="col-span-6 md:col-span-4 row-span-1 rounded-lg overflow-hidden relative group" data-animate>
-        {%- if section.settings.image_4 != blank -%}
-          <img
-            src="{{ section.settings.image_4 | image_url: width: 800 }}"
-            alt="{{ section.settings.image_4.alt | default: section.settings.room_4_name | escape }}"
-            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            loading="lazy"
-            width="{{ section.settings.image_4.width }}"
-            height="{{ section.settings.image_4.height }}"
-          >
-        {%- else -%}
-          {{ 'collection-4' | placeholder_svg_tag: 'w-full h-full object-cover' }}
-        {%- endif -%}
-        <div class="absolute inset-0 bg-gradient-to-t from-obsidian/60 via-transparent to-transparent"></div>
-        <div class="absolute bottom-4 left-4 right-4">
-          <p class="font-display text-base text-white mb-0.5">{{ section.settings.room_4_name | default: 'The Study' }}</p>
-          <p class="font-body text-[10px] text-white/60 tracking-wider uppercase">{{ section.settings.room_4_desc | default: 'Saraswati · Flow of Knowledge' }}</p>
-        </div>
-      </div>
+      {%- endfor -%}
 
     </div>
   </div>
@@ -116,95 +72,42 @@
       "id": "heading",
       "label": "Heading",
       "default": "Where they live in your home"
-    },
+    }
+  ],
+  "blocks": [
     {
-      "type": "header",
-      "content": "Room 1 — Tall Left"
-    },
-    {
-      "type": "image_picker",
-      "id": "image_1",
-      "label": "Image"
-    },
-    {
-      "type": "text",
-      "id": "room_1_name",
-      "label": "Room name",
-      "default": "The Entryway"
-    },
-    {
-      "type": "text",
-      "id": "room_1_desc",
-      "label": "Description",
-      "default": "Ganesh · Remover of Obstacles"
-    },
-    {
-      "type": "header",
-      "content": "Room 2 — Top Right Wide"
-    },
-    {
-      "type": "image_picker",
-      "id": "image_2",
-      "label": "Image"
-    },
-    {
-      "type": "text",
-      "id": "room_2_name",
-      "label": "Room name",
-      "default": "The Living Room"
-    },
-    {
-      "type": "text",
-      "id": "room_2_desc",
-      "label": "Description",
-      "default": "Shiva Nataraja · Force of Transformation"
-    },
-    {
-      "type": "header",
-      "content": "Room 3 — Bottom Left"
-    },
-    {
-      "type": "image_picker",
-      "id": "image_3",
-      "label": "Image"
-    },
-    {
-      "type": "text",
-      "id": "room_3_name",
-      "label": "Room name",
-      "default": "The Quiet Corner"
-    },
-    {
-      "type": "text",
-      "id": "room_3_desc",
-      "label": "Description",
-      "default": "Buddha · Embodiment of Stillness"
-    },
-    {
-      "type": "header",
-      "content": "Room 4 — Bottom Right"
-    },
-    {
-      "type": "image_picker",
-      "id": "image_4",
-      "label": "Image"
-    },
-    {
-      "type": "text",
-      "id": "room_4_name",
-      "label": "Room name",
-      "default": "The Study"
-    },
-    {
-      "type": "text",
-      "id": "room_4_desc",
-      "label": "Description",
-      "default": "Saraswati · Flow of Knowledge"
+      "type": "room",
+      "name": "Room",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Room title",
+          "default": "The Entryway"
+        },
+        {
+          "type": "text",
+          "id": "subtitle",
+          "label": "Deity subtitle",
+          "default": "Ganesh · Remover of Obstacles"
+        }
+      ]
     }
   ],
   "presets": [
     {
-      "name": "Room Gallery"
+      "name": "Room Gallery",
+      "blocks": [
+        { "type": "room", "settings": { "title": "The Entryway", "subtitle": "Ganesh · Remover of Obstacles" } },
+        { "type": "room", "settings": { "title": "The Living Room", "subtitle": "Shiva Nataraja · Force of Transformation" } },
+        { "type": "room", "settings": { "title": "The Quiet Corner", "subtitle": "Buddha · Embodiment of Stillness" } },
+        { "type": "room", "settings": { "title": "The Study", "subtitle": "Saraswati · Flow of Knowledge" } }
+      ]
     }
   ]
 }

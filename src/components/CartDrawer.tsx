@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/sheet";
 import { ShoppingCart, Minus, Plus, Trash2, Loader2, Sparkles, Flame } from "lucide-react";
 import { useCartStore, CONSECRATION_VARIANT_ID, LAMP_VARIANT_ID } from "@/stores/cartStore";
-import { fetchProducts } from "@/lib/shopify";
-import { formatShopifyAmount } from "@/lib/pricing";
+import { fetchCatalogProducts } from "@/lib/commerceConnector";
+import { formatMoneyAmount } from "@/lib/pricing";
 import brassDiyaLamp from "@/assets/brass-diya-lamp.jpg";
 
 export const CartDrawer = () => {
@@ -28,7 +28,7 @@ export const CartDrawer = () => {
     toggleLamp,
   } = useCartStore();
 
-  // Derive all display state directly from the Shopify cart object.
+  // Derive all display state directly from the connector cart object.
   const lines = cart?.lines.edges ?? [];
 
   // Addon lines are rendered in their own UI sections below the regular item list.
@@ -48,13 +48,13 @@ export const CartDrawer = () => {
   // Regular-item quantity for the header description (addons are not counted).
   const regularQuantity = regularLines.reduce((sum, { node }) => sum + node.quantity, 0);
 
-  // Authoritative total from Shopify — includes addon prices, taxes, discounts.
+  // Authoritative total from the connector cart object.
   const totalAmount = cart?.cost.totalAmount ?? null;
 
   useEffect(() => {
     if (isOpen) {
       syncCart();
-      fetchProducts(10, "tag:addon").then(addons => {
+      fetchCatalogProducts(10, "tag:addon").then(addons => {
         const map: Record<string, { amount: string; currencyCode: string }> = {};
         addons.forEach(p => {
           p.node.variants.edges.forEach((v: any) => {
@@ -69,7 +69,7 @@ export const CartDrawer = () => {
   const handleCheckout = () => {
     const checkoutUrl = getCheckoutUrl();
     if (checkoutUrl) {
-      window.open(checkoutUrl, "_blank");
+      window.location.assign(checkoutUrl);
       setIsOpen(false);
     }
   };
@@ -139,9 +139,9 @@ export const CartDrawer = () => {
                               {merchandise.title}
                             </p>
                           )}
-                          {/* Price comes directly from Shopify cart line — never cached locally */}
+                          {/* Price comes directly from the cart line — never cached locally */}
                           <p className="text-gold font-display text-sm mt-1">
-                            {formatShopifyAmount(
+                            {formatMoneyAmount(
                               merchandise.price.amount,
                               merchandise.price.currencyCode,
                             )}
@@ -192,7 +192,7 @@ export const CartDrawer = () => {
                         <p className="text-ivory/40 font-body text-[11px]">
                           Consecration service
                           {!consecrationAdded && addonPrices[CONSECRATION_VARIANT_ID] && (
-                            <> · {formatShopifyAmount(addonPrices[CONSECRATION_VARIANT_ID].amount, addonPrices[CONSECRATION_VARIANT_ID].currencyCode)}</>
+                            <> · {formatMoneyAmount(addonPrices[CONSECRATION_VARIANT_ID].amount, addonPrices[CONSECRATION_VARIANT_ID].currencyCode)}</>
                           )}
                         </p>
                       </div>
@@ -239,7 +239,7 @@ export const CartDrawer = () => {
                       <p className="text-ivory/40 font-body text-[11px] leading-relaxed mb-2">
                         Complete your altar with a hand-cast brass diya.
                         {!lampAdded && addonPrices[LAMP_VARIANT_ID] && (
-                          <> · {formatShopifyAmount(addonPrices[LAMP_VARIANT_ID].amount, addonPrices[LAMP_VARIANT_ID].currencyCode)}</>
+                          <> · {formatMoneyAmount(addonPrices[LAMP_VARIANT_ID].amount, addonPrices[LAMP_VARIANT_ID].currencyCode)}</>
                         )}
                       </p>
                       <div className="flex items-center justify-end">
@@ -266,15 +266,15 @@ export const CartDrawer = () => {
                 </div>
               </div>
 
-              {/* ── Footer: Shopify total + checkout ──────────────────────── */}
+              {/* ── Footer: estimated total + checkout ───────────────────── */}
               <div className="flex-shrink-0 space-y-4 pt-4 border-t border-ivory/10">
                 <div className="flex justify-between items-center">
                   <span className="text-ivory/60 font-body text-sm uppercase tracking-wider">
-                    Total
+                    Estimated Total
                   </span>
                   <span className="text-gold font-display text-xl">
                     {totalAmount
-                      ? formatShopifyAmount(totalAmount.amount, totalAmount.currencyCode)
+                      ? formatMoneyAmount(totalAmount.amount, totalAmount.currencyCode)
                       : "—"}
                   </span>
                 </div>

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { fetchProducts, type ShopifyProduct } from "@/lib/shopify";
+import { fetchCatalogProducts, type CatalogProduct } from "@/lib/commerceConnector";
 import { matchProductToDeity } from "@/data/deities";
 import { useCartStore } from "@/stores/cartStore";
 import { toast } from "sonner";
 import heroBg from "@/assets/hero-bg.jpg";
-import { formatShopifyAmount } from "@/lib/pricing";
+import { formatMoneyAmount } from "@/lib/pricing";
 
 const marqueeItems = [
   "Sourced from Haridwar",
@@ -30,13 +30,13 @@ const testimonials = [
 ];
 
 export default function Index() {
-  const [products, setProducts] = useState<ShopifyProduct[]>([]);
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const addItem = useCartStore(state => state.addItem);
   const isLoading = useCartStore(state => state.isLoading);
 
   useEffect(() => {
-    fetchProducts(50).then(p => {
+    fetchCatalogProducts(50).then(p => {
       setProducts(p);
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -46,9 +46,9 @@ export default function Index() {
   const heroNames = ["ganesh", "shiva", "buddha"];
   const heroProducts = heroNames
     .map(name => products.find(p => p.node.title.toLowerCase().includes(name)))
-    .filter(Boolean) as ShopifyProduct[];
+    .filter(Boolean) as CatalogProduct[];
 
-  const handleAddToCart = async (product: ShopifyProduct) => {
+  const handleAddToCart = async (product: CatalogProduct) => {
     const variant = product.node.variants.edges[0]?.node;
     if (!variant) return;
     await addItem(variant.id, 1);
@@ -153,7 +153,7 @@ export default function Index() {
                     <h3 className="font-display text-xl text-ivory group-hover:text-gold transition-colors">{product.node.title}</h3>
                     {deity && <p className="text-ivory/40 font-body text-sm mt-1">{deity.tagline}</p>}
                     <p className="text-gold font-display text-lg mt-2">
-                      {formatShopifyAmount(price.amount, price.currencyCode)}
+                      {formatMoneyAmount(price.amount, price.currencyCode)}
                     </p>
                   </Link>
                 </motion.div>
